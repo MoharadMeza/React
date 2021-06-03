@@ -1,12 +1,12 @@
 import React from "react";
 import '../../../node_modules/bootstrap/dist/css/bootstrap.min.css'
-import RouteChallenge from '../../Route'
+import AppRouter from '../../Router'
 import './App.css'
 
 
 const App = () => {
     return (
-        <RouteChallenge/>
+        <AppRouter/>
     )
 }
 export default App;

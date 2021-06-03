@@ -5,7 +5,7 @@ import hStar from '../../Images/half-tiny-star.png'
 import fStar from '../../Images/star.png'
 const CPT = () => {
 
-    let pressKey, responseTime, answerTime, intervalT, intervalISI, blockStartTimer, gameStartTimer, sum, normalISI, abnormalISI;
+    let pressKey,  answerTime, intervalT, blockStartTimer, sum = 0, normalISI;
     let arrOfImg = [eStar, hStar, fStar, fStar, hStar], response = [];
     let target = fStar;
     let t = 3000;
@@ -57,7 +57,6 @@ const CPT = () => {
         setScore(scoreObj);
     }
     const start = () => {
-        gameStartTimer = Date.now();
         setScoreObjectInfo();
         showTime();
         setShowInfo(1);
@@ -84,7 +83,6 @@ const CPT = () => {
     }
 
     const checkAnswer = () => {
-        let sw;
         let indexNum;
         pressInfoObject.press = 1;
         console.log(cnt - 1);
@@ -122,8 +120,6 @@ const CPT = () => {
                 }, isi)
             }
         }
-        // console.log(response);
-        // console.log(scoreObj.responseAvg);
         setScore(scoreObj);
     }
     const averaging = () => {
@@ -136,7 +132,7 @@ const CPT = () => {
     if (showInfo === 0)
         return (
             <div className="container">
-                <div className="row justify-content-center">
+                <div className="row justify-content-center mt-5">
                     <button className="btn btn-dark start-btn col col-md-2 col-sm-5 btn-center" onClick={start}>Start</button>
                 </div>
             </div>
@@ -144,8 +140,8 @@ const CPT = () => {
     if (showInfo === 1)
         return (
             <div className="container">
-                <div className="row justify-content-center numbers">
-                    <img src={Img} style={{ width: "20%" }} />
+                <div className="row justify-content-center numbers mt-5">
+                    <img src={Img} style={{ width: "20%" }} alt=""/>
                 </div>
                 <div className="row justify-content-center numbers">
                     {feedBack}
@@ -155,7 +151,7 @@ const CPT = () => {
     if (showInfo === 2)
         return (
             <div className="container">
-                <div className="row justify-content-center numbers">
+                <div className="row justify-content-center numbers mt-5">
                     <Scores score={score} />
                 </div>
             </div>

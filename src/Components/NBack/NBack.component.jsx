@@ -121,7 +121,7 @@ const NBack = () => {
     }
     if (showInfo === 0)
         return (
-            <div className="container">
+            <div className="container mt-5">
                 <div className="row justify-content-center">
                     <button className="btn btn-dark start-btn col col-md-2 col-sm-5 btn-center" onClick={start}>Start</button>
                 </div>
@@ -129,7 +129,7 @@ const NBack = () => {
         )
     if (showInfo === 1)
         return (
-            <div className="container">
+            <div className="container mt-5">
                 <div className="row justify-content-center numbers" style={{fontSize:100}}>
                     {number}
                 </div>
@@ -137,7 +137,7 @@ const NBack = () => {
         )
     if (showInfo === 2)
         return (
-            <div className="container">
+            <div className="container mt-5">
                 <div className="row justify-content-center">
                     <Scores score={score} />
                     {/* <button className="btn btn-dark start-btn col col-md-2 col-sm-5 btn-center" onClick={start}>Start</button> */}
