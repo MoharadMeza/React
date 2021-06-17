@@ -1,18 +1,23 @@
-import React, { useEffect, useState } from "react";
-import Scores from '../Scores/Scores.component'
-import eStar from '../../Images/empty-star.png'
-import hStar from '../../Images/half-tiny-star.png'
-import fStar from '../../Images/star.png'
-const CPT = () => {
+import React, { useEffect, useState, useRef } from "react";
+import '../../../node_modules/bootstrap/dist/css/bootstrap.min.css'
 
-    let pressKey,  answerTime, intervalT, blockStartTimer, sum = 0, normalISI;
+import Scores from '../Scores/Scores.component'
+import eStar from '../../images/empty-star.png'
+import hStar from '../../images/half-tiny-star.png'
+import fStar from '../../images/star.png'
+import { useLocation } from "react-router";
+const CPT = () => {
+    const location = useLocation();
+    const { setting } = location.state;
+    const begin = useRef(0);
+    const status = useRef(1);
+    const time = useRef(3000);
+    const isi = useRef(1000);
+    const target = useRef(fStar);
+
+    let pressKey, answerTime, intervalT, blockStartTimer, sum = 0, normalISI;
     let arrOfImg = [eStar, hStar, fStar, fStar, hStar], response = [];
-    let target = fStar;
-    let t = 3000;
-    let isi = 1000;
     let cnt = 0;
-    let pressInfoObject = []
-    let status = true;
 
     let scoreObj = {
         totalNumber: 0,
@@ -23,14 +28,26 @@ const CPT = () => {
         responseAvg: 0
     };
     useEffect(() => {
+        if (!begin.current) {
+            time.current = setting.time
+            isi.current = setting.isi
+            if (setting.target === 'fStar')
+                target.current = fStar
+            else if (setting.target === 'hStar')
+                target.current = hStar
+            else if (setting.target === 'eStar')
+                target.current = eStar
+            begin.current = 1;
+            start();
+        }
         window.addEventListener('keydown', (event) => {
-            if (status)
+            if (status.current) {
                 if (event.keyCode === 32) {
                     pressKey = Date.now();
-                    status = false;
-                    pressInfoObject.pressTime = pressKey;
+                    status.current = 0;
                     checkAnswer();
                 }
+            }
         });
         return (
             window.removeEventListener('keydown', (event) => {
@@ -46,10 +63,11 @@ const CPT = () => {
     const [score, setScore] = useState({});
     const [feedBack, setFeedBack] = useState(null);
 
+
     const setScoreObjectInfo = () => {
         scoreObj.totalNumber = arrOfImg.length;
         for (let i = 0; i < scoreObj.totalNumber; i++) {
-            if (arrOfImg[i] === target) {
+            if (arrOfImg[i] === target.current) {
                 scoreObj.allCorrects++;
             }
         }
@@ -57,43 +75,37 @@ const CPT = () => {
         setScore(scoreObj);
     }
     const start = () => {
+        begin.current = 1;
+        console.log(target.current);
         setScoreObjectInfo();
         showTime();
-        setShowInfo(1);
         console.log("start");
         intervalT = setInterval(() => {
-            status = true;
+            status.current = 1;
             showTime()
-        }, t + isi);
+        }, time.current + isi.current);
     }
     const showTime = () => {
-        status = true;
         setFeedBack(null)
         setImg(arrOfImg[cnt])
         blockStartTimer = Date.now();
         if (cnt === arrOfImg.length) {
             clearInterval(intervalT);
             console.log("fin");
-            setShowInfo(2);
+            setShowInfo(1);
             setScore(scoreObj)
             return;
         }
-        normalISI = setTimeout(() => { setImg(null) }, t);
+        normalISI = setTimeout(() => { setImg(null) }, time.current);
         cnt++;
     }
 
     const checkAnswer = () => {
         let indexNum;
-        pressInfoObject.press = 1;
-        console.log(cnt - 1);
         if (pressKey) {
             answerTime = pressKey - blockStartTimer;
             indexNum = cnt - 1;
-            pressInfoObject[indexNum] = answerTime;
-            //indexNum = Math.floor(answerTime / (isi + t));
-            //responseTime = (((t + isi) * indexNum) - answerTime);
-            if (arrOfImg[indexNum] === target) {
-                pressInfoObject.mustBePressed = 1;
+            if (arrOfImg[indexNum] === target.current) {
                 console.log("true");
                 scoreObj.userCorrects++;
                 scoreObj.ommission--;
@@ -102,22 +114,23 @@ const CPT = () => {
                 scoreObj.responseAvg = averaging();
                 setFeedBack("احسنت")
             }
-            else {
+            if(arrOfImg[indexNum] !== target.current) {
                 console.log("false");
                 scoreObj.commission++;
                 setFeedBack("متاسفم برات")
             }
-            if (answerTime <= t) {
+            if (answerTime <= time.current) {
                 clearTimeout(normalISI);
                 clearInterval(intervalT);
                 setImg(null)
                 setTimeout(() => {
+                    status.current = 1;
                     showTime()
                     intervalT = setInterval(() => {
-                        status = true;
+                        status.current = 1;
                         showTime()
-                    }, t + isi);
-                }, isi)
+                    }, time.current + isi.current);
+                }, isi.current)
             }
         }
         setScore(scoreObj);
@@ -127,28 +140,18 @@ const CPT = () => {
         setScore(scoreObj);
         return avg;
     }
-
-
     if (showInfo === 0)
         return (
             <div className="container">
-                <div className="row justify-content-center mt-5">
-                    <button className="btn btn-dark start-btn col col-md-2 col-sm-5 btn-center" onClick={start}>Start</button>
-                </div>
-            </div>
-        )
-    if (showInfo === 1)
-        return (
-            <div className="container">
                 <div className="row justify-content-center numbers mt-5">
-                    <img src={Img} style={{ width: "20%" }} alt=""/>
+                    <img src={Img} style={{ width: "20%" }} alt="" />
                 </div>
                 <div className="row justify-content-center numbers">
                     {feedBack}
                 </div>
             </div>
         )
-    if (showInfo === 2)
+    if (showInfo === 1)
         return (
             <div className="container">
                 <div className="row justify-content-center numbers mt-5">

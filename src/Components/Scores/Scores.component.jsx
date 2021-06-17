@@ -1,5 +1,4 @@
 const Scores = (props) => {
-    console.log(props.score);
     return (
         <table className="table table-hover mb-5 text-center">
             <thead>

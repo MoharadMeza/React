@@ -1,15 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { useLocation } from "react-router";
 import Scores from '../Scores/Scores.component'
 
 const NBack = () => {
+    const location = useLocation();
+    const { setting } = location.state;
+    const n = useRef();
+    const t = useRef();
+    const isi = useRef();
+    const begin = useRef(0);
+    const status = useRef(0);
     let startTimer;
     let spacedown;
     let response = [];
-    let n = 2;
     let sum = 0;
-    let sw = -1;
-    let t = 1000;
-    let isi = 500;
     let cnt = 0;
     let arr = [1, 9, 2, 9, 8, 9, 1, 3, 3]
     let interval, pressTime;
@@ -24,6 +28,13 @@ const NBack = () => {
 
 
     useEffect(() => {
+        if (!begin.current) {
+            t.current = setting.time;
+            isi.current = setting.isi;
+            n.current = setting.target;
+            begin.current = 1;
+            start();
+        }
         window.addEventListener('keydown', (event) => {
             if (event.keyCode === 32) {
                 spacedown = Date.now();
@@ -38,109 +49,102 @@ const NBack = () => {
             })
         )
     }, []);
-     const setArrayeInfo = ()=>{
+
+    const [number, setNumber] = useState(null);
+    const [showInfo, setShowInfo] = useState(0);
+    const [score, setScore] = useState({});
+    const [feedBack, setFeedBack] = useState(null);
+
+
+    const setArrayeInfo = () => {
         scoreObj.totalNumber = arr.length;
-        for(let i = 0;i<scoreObj.totalNumber-1 ; i++){
-            if(arr[i] === arr[i+n]){
+        for (let i = 0; i < scoreObj.totalNumber - 1; i++) {
+            if (arr[i] === arr[i + n.current]) {
                 scoreObj.allCorrects++;
             }
         }
         scoreObj.ommission = scoreObj.allCorrects;
         setScore(scoreObj);
-     }
-
-    //const [startTimer, setStartTimer] = useState(null);
-    const [number, setNumber] = useState(null);
-    const [showInfo, setShowInfo] = useState(0);
-    //const [response, setResponse] = useState([]);
-    const [score, setScore] = useState({});
-
-
-
+    }
 
     const start = () => {
+        console.log(t.current);
+        console.log(isi.current);
+        console.log(n.current);
+        begin.current = 1;
         setArrayeInfo();
         startTimer = Date.now();
-        //setStartTimer(Date.now());  ////////////////////////////////////////// in meghdar jadid nemigire
         showNum();
-        setShowInfo(1);
         console.log("start");
         if (interval)
             clearInterval(interval);
-        //console.log(startTimer);
         interval = setInterval(() => {
+            setFeedBack(null)
+            status.current = 0;
             showNum()
-        }, t + isi);
+        }, t.current + isi.current);
     }
     const checkKey = () => {
         let indexNum;
-        console.log(startTimer);
-
-        if (spacedown) {
+        if (!status.current) {
+            status.current = 1;
             pressTime = spacedown - startTimer;
-            indexNum = Math.floor(pressTime / (isi + t));
-            let responseAvg = -(((t + isi) * indexNum) + startTimer - spacedown);
-            if (arr[indexNum] === arr[indexNum - n]) {
+            indexNum = Math.floor(pressTime / (isi.current + t.current));
+            let responseAvg = pressTime - ((t.current + isi.current) * indexNum);
+            if (arr[indexNum] === arr[indexNum - n.current]) {
                 console.log("true");
                 scoreObj.userCorrects++;
                 scoreObj.ommission--;
-                if (sw !== indexNum) {
-                    sw = indexNum;
-                    sum += responseAvg;
-                    response.push(responseAvg);
-                    scoreObj.responseAvg = averaging();
-                }
+                sum += responseAvg;
+                console.log(sum);
+                console.log(responseAvg);
+                response.push(responseAvg);
+                scoreObj.responseAvg = averaging();
+                setFeedBack("احسنت")
             }
             else {
                 console.log("false");
                 scoreObj.commission++;
+                setFeedBack("متاسفم برات")
             }
         }
         setScore(scoreObj);
-        //console.log(scoreObj);
     }
     const showNum = () => {
         setNumber(arr[cnt])
         if (cnt === 10) {
             clearInterval(interval);
             console.log("fin");
-            setShowInfo(2);
+            setShowInfo(1);
             return;
         }
-        setTimeout(() => { setNumber(" ") }, t);
+        setTimeout(() => { setNumber(" ") }, t.current);
         cnt++;
     }
 
     const averaging = () => {
-        console.log(response.length);
         let avg = sum / response.length;
-        console.log(response);
-        //scoreObj.responseAvg = avg/response.length();
         setScore(scoreObj);
         return avg;
     }
     if (showInfo === 0)
         return (
             <div className="container mt-5">
-                <div className="row justify-content-center">
-                    <button className="btn btn-dark start-btn col col-md-2 col-sm-5 btn-center" onClick={start}>Start</button>
+                <div className="row justify-content-center numbers" style={{ fontSize: 100 }}>
+                    {number}
                 </div>
+                {feedBack ?
+                    <div className="row justify-content-center numbers" style={{ fontSize: 20 }}>
+                        {feedBack}
+                    </div> 
+                : null}
             </div>
         )
     if (showInfo === 1)
         return (
             <div className="container mt-5">
-                <div className="row justify-content-center numbers" style={{fontSize:100}}>
-                    {number}
-                </div>
-            </div>
-        )
-    if (showInfo === 2)
-        return (
-            <div className="container mt-5">
                 <div className="row justify-content-center">
                     <Scores score={score} />
-                    {/* <button className="btn btn-dark start-btn col col-md-2 col-sm-5 btn-center" onClick={start}>Start</button> */}
                 </div>
             </div>
         )
