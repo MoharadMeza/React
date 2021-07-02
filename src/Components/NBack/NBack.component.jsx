@@ -1,22 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useLocation } from "react-router";
 import Scores from '../Scores/Scores.component'
+import './NBack.css'
 
-const NBack = () => {
-    const location = useLocation();
-    const { setting } = location.state;
-    const n = useRef();
-    const t = useRef();
-    const isi = useRef();
+const NBack = (props) => {
     const begin = useRef(0);
     const status = useRef(0);
-    let startTimer;
-    let spacedown;
     let response = [];
     let sum = 0;
     let cnt = 0;
-    let arr = [1, 9, 2, 9, 8, 9, 1, 3, 3]
-    let interval, pressTime;
+    let arr = [9, 9, 2, 8, 8, 9, 1, 3, 3]
+    let interval, target, t, isi,numberOfStimuli , blockStartTimer , pressKey , answerTime;
     let scoreObj = {
         totalNumber: 0,
         allCorrects: 0,
@@ -28,27 +21,22 @@ const NBack = () => {
 
 
     useEffect(() => {
+        console.log(props.NBack_obj);
         if (!begin.current) {
-            t.current = setting.time;
-            isi.current = setting.isi;
-            n.current = setting.target;
+            t = props.NBack_obj.time;
+            isi = props.NBack_obj.isi;
+            target = props.NBack_obj.target;
+            numberOfStimuli = props.NBack_obj.NumberOfStimuli;
             begin.current = 1;
             start();
         }
-        window.addEventListener('keydown', (event) => {
-            if (event.keyCode === 32) {
-                spacedown = Date.now();
-                checkKey();
-            }
-        });
-        return (
-            window.removeEventListener('keydown', (event) => {
-                if (event.keyCode === 32) {
-                    console.log(event);
-                }
-            })
-        )
+        window.addEventListener('keydown', eventHandler);
+        return () => {
+            window.removeEventListener('keydown', eventHandler)
+        }
     }, []);
+
+
 
     const [number, setNumber] = useState(null);
     const [showInfo, setShowInfo] = useState(0);
@@ -56,10 +44,19 @@ const NBack = () => {
     const [feedBack, setFeedBack] = useState(null);
 
 
+    const eventHandler = (event) => {
+        console.log("123");
+        if (event.keyCode === 32) {
+            pressKey = Date.now();
+            console.log(event);
+            checkKey();
+        }
+    }
+
     const setArrayeInfo = () => {
         scoreObj.totalNumber = arr.length;
         for (let i = 0; i < scoreObj.totalNumber - 1; i++) {
-            if (arr[i] === arr[i + n.current]) {
+            if (arr[i] === arr[i + target]) {
                 scoreObj.allCorrects++;
             }
         }
@@ -68,12 +65,8 @@ const NBack = () => {
     }
 
     const start = () => {
-        console.log(t.current);
-        console.log(isi.current);
-        console.log(n.current);
         begin.current = 1;
         setArrayeInfo();
-        startTimer = Date.now();
         showNum();
         console.log("start");
         if (interval)
@@ -82,23 +75,34 @@ const NBack = () => {
             setFeedBack(null)
             status.current = 0;
             showNum()
-        }, t.current + isi.current);
+        }, t + isi);
+    }
+    const showNum = () => {
+        setNumber(arr[cnt])
+        blockStartTimer = Date.now();
+        if (cnt === numberOfStimuli) {
+            clearInterval(interval);
+            console.log("fin");
+            setShowInfo(1);
+            return;
+        }
+        setTimeout(() => { setNumber(" ") }, t);
+        cnt++;
     }
     const checkKey = () => {
         let indexNum;
         if (!status.current) {
             status.current = 1;
-            pressTime = spacedown - startTimer;
-            indexNum = Math.floor(pressTime / (isi.current + t.current));
-            let responseAvg = pressTime - ((t.current + isi.current) * indexNum);
-            if (arr[indexNum] === arr[indexNum - n.current]) {
+            answerTime = pressKey - blockStartTimer;
+            indexNum = cnt - 1;
+            if (arr[indexNum] === arr[indexNum - target]) {
                 console.log("true");
                 scoreObj.userCorrects++;
                 scoreObj.ommission--;
-                sum += responseAvg;
+                sum += answerTime;
                 console.log(sum);
-                console.log(responseAvg);
-                response.push(responseAvg);
+                console.log(answerTime);
+                response.push(answerTime);
                 scoreObj.responseAvg = averaging();
                 setFeedBack("احسنت")
             }
@@ -110,17 +114,6 @@ const NBack = () => {
         }
         setScore(scoreObj);
     }
-    const showNum = () => {
-        setNumber(arr[cnt])
-        if (cnt === 10) {
-            clearInterval(interval);
-            console.log("fin");
-            setShowInfo(1);
-            return;
-        }
-        setTimeout(() => { setNumber(" ") }, t.current);
-        cnt++;
-    }
 
     const averaging = () => {
         let avg = sum / response.length;
@@ -130,14 +123,14 @@ const NBack = () => {
     if (showInfo === 0)
         return (
             <div className="container mt-5">
-                <div className="row justify-content-center numbers" style={{ fontSize: 100 }}>
+                <div className="row justify-content-center numbers">
                     {number}
                 </div>
                 {feedBack ?
-                    <div className="row justify-content-center numbers" style={{ fontSize: 20 }}>
+                    <h1 className="row justify-content-center feedBacks">
                         {feedBack}
-                    </div> 
-                : null}
+                    </h1>
+                    : null}
             </div>
         )
     if (showInfo === 1)

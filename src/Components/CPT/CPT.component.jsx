@@ -5,17 +5,12 @@ import Scores from '../Scores/Scores.component'
 import eStar from '../../images/empty-star.png'
 import hStar from '../../images/half-tiny-star.png'
 import fStar from '../../images/star.png'
-import { useLocation } from "react-router";
-const CPT = () => {
-    const location = useLocation();
-    const { setting } = location.state;
+const CPT = (props) => {
+
     const begin = useRef(0);
     const status = useRef(1);
-    const time = useRef(3000);
-    const isi = useRef(1000);
-    const target = useRef(fStar);
 
-    let pressKey, answerTime, intervalT, blockStartTimer, sum = 0, normalISI;
+    let pressKey, answerTime, intervalT, blockStartTimer, sum = 0, normalISI , time , isi ,target;
     let arrOfImg = [eStar, hStar, fStar, fStar, hStar], response = [];
     let cnt = 0;
 
@@ -27,35 +22,33 @@ const CPT = () => {
         ommission: 0,
         responseAvg: 0
     };
+    const eventHandler  = (event) => {
+        if (status.current) {
+            if (event.keyCode === 32) {
+                pressKey = Date.now();
+                status.current = 0;
+                checkAnswer();
+            }
+        }
+    }
     useEffect(() => {
+        console.log(props.CPT_obj);
         if (!begin.current) {
-            time.current = setting.time
-            isi.current = setting.isi
-            if (setting.target === 'fStar')
-                target.current = fStar
-            else if (setting.target === 'hStar')
-                target.current = hStar
-            else if (setting.target === 'eStar')
-                target.current = eStar
+            time = props.CPT_obj.time
+            isi = props.CPT_obj.isi
+            if (props.CPT_obj.target === 'f')
+                target = fStar
+            else if (props.CPT_obj.target === 'h')
+                target = hStar
+            else if (props.CPT_obj.target === 'e')
+                target = eStar
             begin.current = 1;
             start();
         }
-        window.addEventListener('keydown', (event) => {
-            if (status.current) {
-                if (event.keyCode === 32) {
-                    pressKey = Date.now();
-                    status.current = 0;
-                    checkAnswer();
-                }
-            }
-        });
-        return (
-            window.removeEventListener('keydown', (event) => {
-                if (event.keyCode === 32) {
-                    console.log(event);
-                }
-            })
-        )
+        window.addEventListener('keydown', eventHandler);
+        return () => {
+            window.removeEventListener('keydown', eventHandler)
+        }
     }, []);
 
     const [Img, setImg] = useState(null);
@@ -67,7 +60,7 @@ const CPT = () => {
     const setScoreObjectInfo = () => {
         scoreObj.totalNumber = arrOfImg.length;
         for (let i = 0; i < scoreObj.totalNumber; i++) {
-            if (arrOfImg[i] === target.current) {
+            if (arrOfImg[i] === target) {
                 scoreObj.allCorrects++;
             }
         }
@@ -76,14 +69,16 @@ const CPT = () => {
     }
     const start = () => {
         begin.current = 1;
-        console.log(target.current);
+        console.log(time);
+        console.log(isi);
+        console.log(target);
         setScoreObjectInfo();
         showTime();
         console.log("start");
         intervalT = setInterval(() => {
             status.current = 1;
             showTime()
-        }, time.current + isi.current);
+        }, time + isi);
     }
     const showTime = () => {
         setFeedBack(null)
@@ -96,7 +91,7 @@ const CPT = () => {
             setScore(scoreObj)
             return;
         }
-        normalISI = setTimeout(() => { setImg(null) }, time.current);
+        normalISI = setTimeout(() => { setImg(null) }, time);
         cnt++;
     }
 
@@ -105,7 +100,7 @@ const CPT = () => {
         if (pressKey) {
             answerTime = pressKey - blockStartTimer;
             indexNum = cnt - 1;
-            if (arrOfImg[indexNum] === target.current) {
+            if (arrOfImg[indexNum] === target) {
                 console.log("true");
                 scoreObj.userCorrects++;
                 scoreObj.ommission--;
@@ -114,12 +109,12 @@ const CPT = () => {
                 scoreObj.responseAvg = averaging();
                 setFeedBack("احسنت")
             }
-            if(arrOfImg[indexNum] !== target.current) {
+            if(arrOfImg[indexNum] !== target) {
                 console.log("false");
                 scoreObj.commission++;
                 setFeedBack("متاسفم برات")
             }
-            if (answerTime <= time.current) {
+            if (answerTime <= time) {
                 clearTimeout(normalISI);
                 clearInterval(intervalT);
                 setImg(null)
@@ -129,8 +124,8 @@ const CPT = () => {
                     intervalT = setInterval(() => {
                         status.current = 1;
                         showTime()
-                    }, time.current + isi.current);
-                }, isi.current)
+                    }, time + isi);
+                }, isi)
             }
         }
         setScore(scoreObj);
@@ -146,17 +141,15 @@ const CPT = () => {
                 <div className="row justify-content-center numbers mt-5">
                     <img src={Img} style={{ width: "20%" }} alt="" />
                 </div>
-                <div className="row justify-content-center numbers">
+                <h1 className="row justify-content-center">
                     {feedBack}
-                </div>
+                </h1>
             </div>
         )
     if (showInfo === 1)
         return (
-            <div className="container">
-                <div className="row justify-content-center numbers mt-5">
-                    <Scores score={score} />
-                </div>
+            <div className="container mt-5">
+                <Scores score={score} />
             </div>
         )
 }
