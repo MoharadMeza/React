@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import '../../../node_modules/bootstrap/dist/css/bootstrap.min.css'
-
 import Scores from '../Scores/Scores.component'
+import './cpt.css'
+
 import eStar from '../../images/empty-star.png'
 import hStar from '../../images/half-tiny-star.png'
 import fStar from '../../images/star.png'
@@ -10,20 +10,29 @@ const CPT = (props) => {
     const begin = useRef(0);
     const status = useRef(1);
 
-    let pressKey, answerTime, intervalT, blockStartTimer, sum = 0, normalISI , time , isi ,target;
-    let arrOfImg = [eStar, hStar, fStar, fStar, hStar], response = [];
+    let pressKey, answerTime, intervalT, blockStartTimer, sum = 0, normalISI, time, isi, target;
+    let arrOfImg = [2, 2, 100, 1, 2, 2, 1, 1, 100, 2, 2, 100, 2, 2, 2], response = [];
     let cnt = 0;
 
     let scoreObj = {
+        time: 3000,
+        isi : 1000,
+        target : 1,
         totalNumber: 0,
         allCorrects: 0,
         userCorrects: 0,
         commission: 0,
         ommission: 0,
-        responseAvg: 0
+        totalResponseTime: 0,
+        responseAvg: 0,
     };
-    const eventHandler  = (event) => {
-        if (status.current) {
+    const eventHandler = (event) => {
+        if (event.keyCode === 32 && !begin.current) {
+            begin.current = 1;
+            start();
+            return
+        }
+        if (status.current && begin.current) {
             if (event.keyCode === 32) {
                 pressKey = Date.now();
                 status.current = 0;
@@ -33,18 +42,11 @@ const CPT = (props) => {
     }
     useEffect(() => {
         console.log(props.CPT_obj);
-        if (!begin.current) {
-            time = props.CPT_obj.time
-            isi = props.CPT_obj.isi
-            if (props.CPT_obj.target === 'f')
-                target = fStar
-            else if (props.CPT_obj.target === 'h')
-                target = hStar
-            else if (props.CPT_obj.target === 'e')
-                target = eStar
-            begin.current = 1;
-            start();
-        }
+        scoreObj.time = time = props.CPT_obj.time
+        scoreObj.isi = isi = props.CPT_obj.isi
+        scoreObj.target = target = props.CPT_obj.target
+        if (props.CPT_obj.arr.length)
+            arrOfImg = props.CPT_obj.arr;
         window.addEventListener('keydown', eventHandler);
         return () => {
             window.removeEventListener('keydown', eventHandler)
@@ -68,10 +70,6 @@ const CPT = (props) => {
         setScore(scoreObj);
     }
     const start = () => {
-        begin.current = 1;
-        console.log(time);
-        console.log(isi);
-        console.log(target);
         setScoreObjectInfo();
         showTime();
         console.log("start");
@@ -82,7 +80,12 @@ const CPT = (props) => {
     }
     const showTime = () => {
         setFeedBack(null)
-        setImg(arrOfImg[cnt])
+        if (arrOfImg[cnt] === 100)
+            setImg(fStar)
+        else if (arrOfImg[cnt] === 1)
+            setImg(hStar)
+        else if (arrOfImg[cnt] === 2)
+            setImg(eStar)
         blockStartTimer = Date.now();
         if (cnt === arrOfImg.length) {
             clearInterval(intervalT);
@@ -106,13 +109,14 @@ const CPT = (props) => {
                 scoreObj.ommission--;
                 response.push(answerTime);
                 sum += answerTime;
+                scoreObj.totalResponseTime = sum;
                 scoreObj.responseAvg = averaging();
-                setFeedBack("احسنت")
+                setFeedBack("درست")
             }
-            if(arrOfImg[indexNum] !== target) {
+            if (arrOfImg[indexNum] !== target) {
                 console.log("false");
                 scoreObj.commission++;
-                setFeedBack("متاسفم برات")
+                setFeedBack("غلط")
             }
             if (answerTime <= time) {
                 clearTimeout(normalISI);
@@ -129,27 +133,42 @@ const CPT = (props) => {
             }
         }
         setScore(scoreObj);
+        console.log(response)
     }
     const averaging = () => {
         let avg = sum / response.length;
         setScore(scoreObj);
         return avg;
     }
+    if (!begin.current)
+        return (
+            <div className="container">
+                <div className="start">
+                    <h1>
+                        را بزنید space برای شروع
+                    </h1>
+                </div>
+            </div>
+        )
     if (showInfo === 0)
         return (
             <div className="container">
-                <div className="row justify-content-center numbers mt-5">
-                    <img src={Img} style={{ width: "20%" }} alt="" />
+                <div className="row justify-content-center d-flex">
+                    <img src={Img} className="stars" />
                 </div>
-                <h1 className="row justify-content-center">
-                    {feedBack}
-                </h1>
+                {!props.CPT_obj.mode ?
+                    <h1 className="row justify-content-center feedBacks">
+                        {feedBack}
+                    </h1> : null
+                }
             </div>
         )
     if (showInfo === 1)
         return (
             <div className="container mt-5">
-                <Scores score={score} />
+                <div className="row justify-content-center">
+                    <Scores score={score} name={"CPT"} />
+                </div>
             </div>
         )
 }
