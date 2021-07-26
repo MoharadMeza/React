@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
+import Generate from '../../../../../app/Generate'
 import Modal from 'react-bootstrap/Modal'
 import CPT from '../CPT/CPT.component'
 import NBack from '../NBack/NBack.component'
@@ -8,12 +9,19 @@ import eStar from '../../../../../images/CPT/empty-star.png'
 import hStar from '../../../../../images/CPT/half-tiny-star.png'
 import fStar from '../../../../../images/CPT/star.png'
 
-const Game = () => {
+const Game = (props) => {
+    useEffect(() => {
+        console.log("USE EFFECT CALLED !");
+    }, [])
+    //console.log(props.CPTModalSetting);
+
     let CPT_obj = {
+        numbers: props.CPTModalSetting.numbers,
+        targetPercentage: props.CPTModalSetting.targetPercentage,
         time: 3000,
         isi: 1000,
-        target: 100,
-        arr: [],
+        targets: [],
+        arr: props.CPTModalSetting.arr,
         mode: 0
     }
     let NBack_obj = {
@@ -25,41 +33,35 @@ const Game = () => {
         mode: 0
     };
     const [showModal, setShowModal] = useState(false);
-    const [CPTStartBtn, setCPTStartBtn] = useState(0);
-    const [NBackStartBtn, setNBackStartBtn] = useState(0);
-    const [checked, setChecked] = useState(0);
+    const [startBtn, setStartBtn] = useState(0);
     const [mode, setMode] = useState(0);
-    const [CPTObj, setCPTObj] = useState({
-        time: 3000,
-        isi: 1000,
-        target: 100,
-        arr: [],
-        mode: 0
-    });
-    const [NBackObj, setNBackObj] = useState({
-        time: 3000,
-        isi: 1000,
-        target: 1,
-        NumberOfStimuli: 0,
-        arr: [],
-        mode: 0
-    })
-    useEffect(() => {
-    }, []);
+    const [NBackObj, setNBackObj] = useState(props.NBackModalSetting)
+    const { pathname } = useLocation();
+    const currentRoute = pathname;
 
-    const { currentRoute } = useParams();
     const handleShow = () => setShowModal(true);
     const handleClose = () => setShowModal(false);
-    const CPTHandler = () => setCPTStartBtn(1);
-    const NBackHandler = () => setNBackStartBtn(1);
-    const handleCheck = (event) => {
-        if (event.target.id === 'fStar')
-            setChecked(0)
-        else if (event.target.id === 'hStar')
-            setChecked(1)
-        else if (event.target.id === 'eStar')
-            setChecked(2)
+    const startHandler = () => {
+        //currentRoute === "/NBack" ? setNBackObj(props.NBackModalSetting) : setCPTObj(props.CPTModalSetting);
+        props.setStartGame(true);
+        setStartBtn(1);
     }
+    const setArray = (n, t) => {
+        let totalTargets = [0, 1 ,2]
+        console.log(totalTargets.filter(item => !CPT_obj.targets.includes(item), CPT_obj.targets));
+        const generateArray = new Generate(n, t);
+        generateArray
+            .cpt(totalTargets.filter(item => !CPT_obj.targets.includes(item)), CPT_obj.targets)
+            .then((cptOut) => {
+                console.log("success");
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+        console.log(generateArray.outSamples);
+        return generateArray.outSamples;
+    }
+
     const handleMode = (event) => {
         if (event.target.id === "demo")
             setMode(0);
@@ -67,200 +69,115 @@ const Game = () => {
             setMode(1);
     }
 
-    const updateCPT = (event) => {
+    const updateSetting = (event) => {
+        let target = [];
         event.preventDefault();
-        if (parseInt(event.target[0].value) > 0)
-            CPT_obj.time = parseInt(event.target[0].value);
-        if (parseInt(event.target[1].value) >= 0)
-            CPT_obj.isi = parseInt(event.target[1].value);
-        if (event.target[2].checked)
-            CPT_obj.target = 100;
-        if (event.target[3].checked)
-            CPT_obj.target = 1
-        if (event.target[4].checked)
-            CPT_obj.target = 2
-        if (event.target[7].value)
-            CPT_obj.arr = event.target[7].value.split(',').map(function (item) {
-                return parseInt(item, 10);
-            })
-        CPT_obj.mode = mode;
-        setCPTObj(CPT_obj);
-        setShowModal(false);
-    }
-    const updateNBack = (event) => {
-        event.preventDefault();
-        if (parseInt(event.target[0].value) > 0)
-            NBack_obj.time = parseInt(event.target[0].value);
-        if (parseInt(event.target[1].value) >= 0)
-            NBack_obj.isi = parseInt(event.target[1].value);
-        if (parseInt(event.target[2].value) > 0)
-            NBack_obj.target = parseInt(event.target[2].value);
-        if (parseInt(event.target[3].value) > 0)
-            NBack_obj.NumberOfStimuli = parseInt(event.target[3].value);
-        if (event.target[6].value)
-            NBack_obj.arr = event.target[6].value.split(',').map(function (item) {
-                return parseInt(item, 10);
-            })
-        if (NBack_obj.isi === 0)
-            NBack_obj.mode = 1
-        else
-            NBack_obj.mode = mode;
-        setNBackObj(NBack_obj)
-        setShowModal(false);
-    }
-    if (currentRoute === 'CPT') {
-        if (!CPTStartBtn)
-            return (
-                <div className="game-modal bg-light">
-                    <div className="container">
-                        <div className="row mt-5 justify-content-center p-5">
-                            <div className="col col-12 col-md-6">
-                                <div className="col col-12 text-center mb-md-0 mb-3">
-                                    <button onClick={CPTHandler} className="btn btn-secondary w-100 fs-1 mb-3">
-                                        شروع
-                                    </button>
-                                </div>
-                                <div className="col col-12 text-center">
-                                    <button onClick={handleShow} className="btn btn-primary w-100 fs-1">
-                                        تنظیمات
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        if (currentRoute === "/NBack") {
+            debugger;
+            NBack_obj = props.NBackModalSetting;
+            if (parseInt(event.target[0].value) > 0)
+                NBack_obj.time = parseInt(event.target[0].value);
+            if (parseInt(event.target[1].value) >= 0)
+                NBack_obj.isi = parseInt(event.target[1].value);
+            if (parseInt(event.target[2].value) > 0)
+                NBack_obj.target = parseInt(event.target[2].value);
+            if (parseInt(event.target[3].value) > 0)
+                NBack_obj.NumberOfStimuli = parseInt(event.target[3].value);
+            if (event.target[6].value)
+                NBack_obj.arr = event.target[6].value.split(',').map(function (item) {
+                    return parseInt(item, 10);
+                })
+            if (NBack_obj.isi === 0)
+                NBack_obj.mode = 1
+            else
+                NBack_obj.mode = mode;
 
-                    <Modal show={showModal} onHide={handleClose} className="game-modal">
+            setNBackObj(NBack_obj);
+            props.setNBackModalSetting(NBack_obj);
+        }
+        else {
+            console.log(props.CPTModalSetting);
+            CPT_obj = props.CPTModalSetting;
+            if (parseInt(event.target[0].value) > 0)
+                CPT_obj.time = parseInt(event.target[0].value);
+            if (parseInt(event.target[1].value) >= 0)
+                CPT_obj.isi = parseInt(event.target[1].value);
+            if (parseInt(event.target[2].value) >= 0)
+                CPT_obj.numbers = parseInt(event.target[2].value);
+            if (parseInt(event.target[3].value) >= 0)
+                CPT_obj.targetPercentage = parseInt(event.target[3].value);
+            if (event.target[4].checked)
+                target.push(0);
+            if (event.target[5].checked)
+                target.push(1);
+            if (event.target[6].checked)
+                target.push(2);
+            CPT_obj.targets = target;
+            CPT_obj.arr = setArray(CPT_obj.numbers, CPT_obj.targetPercentage)
+            CPT_obj.mode = mode;
+
+            //setCPTObj(CPT_obj);
+            props.setCPTModalSetting(CPT_obj);
+            console.log(props.CPTModalSetting);
+        }
+        setShowModal(false);
+    }
+
+    if (!startBtn && !props.startGame)
+        return (
+            <div className="bg-light game-modal h-100 d-flex justify-content-center align-items-center">
+                <div className="w-50 h-100 d-flex flex-column justify-content-around">
+                    <div className="text-center mb-md-0 mb-3 h-25">
+                        <button onClick={startHandler} className="btn btn-secondary w-100 fs-1 mb-3 h-75  display-4">
+                            شروع
+                        </button>
+                    </div>
+                    <div className="text-center h-25">
+                        <button onClick={handleShow} className="btn btn-primary w-100 display-4 h-75">
+                            تنظیمات
+                        </button>
+                    </div>
+                </div>
+                <Modal show={showModal} onHide={handleClose} className="game-modal">
+                    <form onSubmit={updateSetting}>
                         <Modal.Header className="bg-light">
-                            <Modal.Title className="w-100 text-end">
+                            <Modal.Title className="w-100">
                                 تنظیمات
                             </Modal.Title>
                         </Modal.Header>
-                        <form onSubmit={updateCPT}>
-                            <Modal.Body className="bg-light">
-                                <div className="container">
-                                    <div className="row form-group mb-2">
-                                        <label htmlFor="input1" className="col-md-6 col-form-label"> مدت زمان نمایش (ms):</label>
-                                        <div className="col-md-6 ps-0">
-                                            <input type="number" className="form-control" id="input1" placeholder="پیشفرض : 3000" min="20" />
-                                        </div>
-                                    </div>
-                                    <div className="row form-group mb-2">
-                                        <label htmlFor="input2" className="col-md-4 col-form-label" dir="ltr">  : (ms) ISI </label>
-                                        <div className="col-md-8 ps-0">
-                                            <input type="number" className="form-control" id="input2" min="20" placeholder="پیشفرض : 1000" />
-                                        </div>
-                                    </div>
-                                    <div className="row form-group mb-2">
-                                        <div className="col-md-4">
-                                            <label className="col-form-label">  هدف :</label>
-                                        </div>
-                                        <div className="col-md-8 ps-0">
-                                            <div className="row justify-content-around mt-1">
-                                                <div className="form-check form-check-inline col-2 p-0">
-                                                    <label className="radio radio-success ms-5">
-                                                        <img src={fStar} className="w-50 mt-3 mb-3 mr-2 ml-3" />
-                                                        <input type="radio" name="RadioOptions1" defaultChecked={(checked === 0) ? true : false} onClick={handleCheck} />
-                                                        <span className="mt-2"></span>
-                                                    </label>
-                                                </div>
-                                                <div className="form-check form-check-inline col-2 p-0">
-                                                    <label className="radio radio-success ms-5">
-                                                        <img src={hStar} className="w-50 mt-3 mb-3 mr-2 ml-3" />
-                                                        <input className="" type="radio" name="RadioOptions1" id="hStar" value="eStar" defaultChecked={(checked === 1) ? true : false} onClick={handleCheck} />
-                                                        <span className="mt-2"></span>
-                                                    </label>
-                                                </div>
-                                                <div className="form-check form-check-inline col-2 p-0">
-                                                    <label className="radio radio-success ms-5">
-                                                        <img src={eStar} className="w-50 mt-3 mb-3 mr-2 ml-3" />
-                                                        <input className="" type="radio" name="RadioOptions1" id="eStar" value="eStar" defaultChecked={(checked === 2) ? true : false} onClick={handleCheck} />
-                                                        <span className="mt-2"></span>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
+                        <Modal.Body className="bg-light">
+                            <div className="container">
 
-                                    </div>
-
-                                    <div className="row form-group mb-2">
-                                        <div className="col">
-                                            <label>  حالت :</label>
-                                        </div>
-                                        <div className="col form-check-inline">
-                                            <label className="radio radio-success mt-1">  دمو
-                                                <input type="radio" name="radioOptions2" id="demo" defaultChecked={(mode === 0) ? true : false} onClick={handleMode} />
-                                                <span className="m-1"></span>
-                                            </label>
-                                        </div>
-                                        <div className="col form-check-inline">
-                                            <label className="radio radio-success mt-1">  تست
-                                                <input type="radio" name="radioOptions2" id="demo" defaultChecked={(mode === 0) ? true : false} onClick={handleMode} />
-                                                <span className="m-1"></span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div className="row px-3">
-                                        <label className="mb-2" htmlFor="array"> آرایه اعداد :</label>
-                                        <textarea className="form-control" id="array" name="array" rows="7" cols="10" />
+                                <div className="row form-group mb-2">
+                                    <label htmlFor="input1" className="col-auto col-form-label">مدت زمان نمایش (ms) :</label>
+                                    <div className="col ps-0">
+                                        <input type="number" className="form-control" id="input3" min="20" placeholder={`پیشفرض : ${currentRoute === "/NBack" ? props.NBackModalSetting.time : props.CPTModalSetting.time}`} />
                                     </div>
                                 </div>
-                            </Modal.Body>
-                            <Modal.Footer className="bg-light">
-                                <input className="btn btn-success" type="submit" value="ذخیره" />
-                            </Modal.Footer>
-                        </form>
-                    </Modal>
-                </div>
-            )
-        else
-            return (
-                <CPT CPT_obj={CPTObj} />
-            )
-    }
-    if (currentRoute === 'NBack') {
-        if (!NBackStartBtn)
-            return (
-                <div className="bg-light game-modal">
-                    <div className="container">
-                        <div className="row mt-5 justify-content-center p-5">
-                            <div className="col col-md-6">
-                                <div className="col col-12 text-center mb-md-0 mb-3">
-                                    <button onClick={NBackHandler} className="btn btn-secondary w-100 fs-1 mb-3">
-                                        شروع
-                                    </button>
+                                <div className="row form-group mb-2">
+                                    <label htmlFor="input2" className="col-auto col-form-label" dir="ltr">  : (ms) ISI </label>
+                                    <div className="col ps-0">
+                                        <input type="number" className="form-control" id="input4" min="20" placeholder={`پیشفرض : ${currentRoute === "/NBack" ? props.NBackModalSetting.isi : props.CPTModalSetting.isi}`} />
+                                    </div>
                                 </div>
-                                <div className="col col-12 text-center">
-                                    <button onClick={handleShow} className="btn btn-primary w-100 fs-1">
-                                        تنظیمات
-                                    </button>
+                                <div className="row form-group mb-2">
+                                    <label htmlFor="input3" className="col-auto col-form-label"> سایز آرایه :</label>
+                                    <div className="col ps-0">
+                                        <input type="number" className="form-control" id="input1" min="5" placeholder={`پیشفرض : ${currentRoute === "/NBack" ? props.NBackModalSetting.time : props.CPTModalSetting.numbers}`} />
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <Modal show={showModal} onHide={handleClose} className="game-modal">
-                            <form onSubmit={updateNBack}>
-                                <Modal.Header className="bg-light">
-                                    <Modal.Title className="w-100 text-end">
-                                        تنظیمات
-                                    </Modal.Title>
-                                </Modal.Header>
-                                <Modal.Body className="bg-light">
-                                    <div className="container">
-                                        <div className="row form-group mb-2">
-                                            <label htmlFor="input1" className="col-md-6 col-form-label">مدت زمان نمایش (ms) :</label>
-                                            <div className="col-md-6 ps-0">
-                                                <input type="number" className="form-control" id="input1" placeholder="پیشفرض : 3000" min="20" />
-                                            </div>
-                                        </div>
-                                        <div className="row form-group mb-2">
-                                            <label htmlFor="input2" className="col-md-4 col-form-label" dir="ltr">  : (ms) ISI </label>
-                                            <div className="col-md-8 ps-0">
-                                                <input type="number" className="form-control" id="input2" min="20" placeholder="پیشفرض : 1000" />
-                                            </div>
-                                        </div>
+                                <div className="row form-group mb-2">
+                                    <label htmlFor="input4" className="col-auto col-form-label"> درصد هدف :</label>
+                                    <div className="col ps-0">
+                                        <input type="number" className="form-control" id="input2" min="2" placeholder={`پیشفرض : ${currentRoute === "/NBack" ? props.NBackModalSetting.time : props.CPTModalSetting.targetPercentage}`} />
+                                    </div>
+                                </div>
+                                {currentRoute === "/NBack" ?
+                                    <>
                                         <div className="row form-group mb-2">
                                             <label htmlFor="input3" className="col-md-3 col-form-label"> n : </label>
                                             <div className="col-md-9 ps-0">
-                                                <input type="number" className="form-control" id="target" min="1" placeholder="پیشفرض : 1" />
+                                                <input type="number" className="form-control" id="target" min="1" placeholder={`پیشفرض : ${currentRoute === "/NBack" ? props.NBackModalSetting.target : props.CPTModalSetting.target}`} />
                                             </div>
                                         </div>
                                         <div className="row form-group mb-2">
@@ -269,41 +186,77 @@ const Game = () => {
                                                 <input type="number" className="form-control" id="NumberOfStimuli" min="1" placeholder="پیشفرض : طول آرایه" />
                                             </div>
                                         </div>
+                                    </>
+                                    :
+                                    <>
                                         <div className="row form-group mb-2">
-                                            <div className="col">
-                                                <label>  حالت :</label>
+                                            <div className="col-md-3">
+                                                <label className="col-form-label mt-2">  هدف :</label>
                                             </div>
-                                            <div className="col form-check-inline">
-                                                <label className="radio radio-success mt-1">  دمو
-                                                    <input type="radio" name="radioOptions2" id="demo" defaultChecked={(mode === 0) ? true : false} onClick={handleMode} />
-                                                    <span className="m-1"></span>
-                                                </label>
-                                            </div>
-                                            <div className="col form-check-inline">
-                                                <label className="radio radio-success mt-1">  تست
-                                                    <input type="radio" name="radioOptions2" id="demo" defaultChecked={(mode === 1) ? true : false} onClick={handleMode} />
-                                                    <span className="m-1"></span>
-                                                </label>
+                                            <div className="col-md-9 ps-0">
+                                                <div className="row justify-content-around">
+                                                    <div className="form-check form-check-inline col-2 p-0">
+                                                        <label className="checkbox checkbox-success ms-5">
+                                                            <img src={fStar} className="w-50 mt-3 mb-3 mr-2 ml-3" />
+                                                            <input type="checkbox" name="RadioOptions1" />
+                                                            <span className="mt-2"></span>
+                                                        </label>
+                                                    </div>
+                                                    <div className="form-check form-check-inline col-2 p-0">
+                                                        <label className="checkbox checkbox-success ms-5">
+                                                            <img src={hStar} className="w-50 mt-3 mb-3 mr-2 ml-3" />
+                                                            <input type="checkbox" name="RadioOptions1" />
+                                                            <span className="mt-2"></span>
+                                                        </label>
+                                                    </div>
+                                                    <div className="form-check form-check-inline col-2 p-0">
+                                                        <label className="checkbox checkbox-success ms-5">
+                                                            <img src={eStar} className="w-50 mt-3 mb-3 mr-2 ml-3" />
+                                                            <input type="checkbox" name="RadioOptions1"/>
+                                                            <span className="mt-2"></span>
+                                                        </label>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="row px-3">
-                                            <label className="mb-2" htmlFor="array"> آرایه اعداد :</label>
-                                            <textarea className="form-control" id="array" name="array" rows="7" cols="10" />
-                                        </div>
+                                    </>
+                                }
+                                <div className="row form-group mb-2">
+                                    <div className="col">
+                                        <label className="mt-2">  حالت :</label>
                                     </div>
-                                </Modal.Body>
-                                <Modal.Footer className="bg-light">
-                                    <input className="btn btn-success" type="submit" value="ذخیره" />
-                                </Modal.Footer>
-                            </form>
-                        </Modal>
-                    </div>
-                </div>
+                                    <div className="col form-check-inline">
+                                        <label className="radio radio-success mt-1">  دمو
+                                            <input type="radio" name="radioOptions2" id="demo" defaultChecked={mode === 0 ? true : false} onClick={handleMode} />
+                                            <span className="m-1"></span>
+                                        </label>
+                                    </div>
+                                    <div className="col form-check-inline">
+                                        <label className="radio radio-success mt-1">  تست
+                                            <input type="radio" name="radioOptions2" id="test" defaultChecked={mode === 1 ? true : false} onClick={handleMode} />
+                                            <span className="m-1"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </Modal.Body>
+                        <Modal.Footer className="bg-light">
+                            <input className="btn btn-success" type="submit" value="ذخیره" />
+                        </Modal.Footer>
+                    </form>
+                </Modal>
+            </div>
+        )
+    else {
+        if (currentRoute === "/NBack")
+            return (
+                <NBack NBack_obj={NBackObj} setScoreTable={props.setScoreTable} setScoreAvailable={props.setScoreAvailable} />
             )
         else
             return (
-                <NBack NBack_obj={NBackObj} />
+                <CPT CPT_obj={props.CPTModalSetting} setScoreTable={props.setScoreTable} setScoreAvailable={props.setScoreAvailable} />
             )
     }
 }
 export default Game;
+

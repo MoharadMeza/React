@@ -1,5 +1,6 @@
 import { toAbsoluteUrl } from "../../_helpers";
 export function getInitLayoutConfig() {
+  console.log("initial called");
   return {
     demo: "demo3",
     // Javascript Settings

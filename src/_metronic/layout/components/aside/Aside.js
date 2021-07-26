@@ -14,10 +14,9 @@ import { KTUtil } from "./../../../_assets/js/components/util";
 
 export function Aside() {
   const uiService = useHtmlClassService();
-
   const layoutProps = useMemo(() => {
     return {
-      asideClassesFromConfig: uiService.getClasses("aside", true),
+      asideClassesFromConfig: uiService.getClasses("aside", false),
       asideSecondaryDisplay: objectPath.get(
         uiService.config,
         "aside.secondary.display"
@@ -57,7 +56,7 @@ export function Aside() {
     tabId1: "kt_aside_tab_1",
     tabId2: "kt_aside_tab_2",
   };
-  const [activeTab, setActiveTab] = useState(tabs.tabId1);
+  const [activeTab, setActiveTab] = useState(tabs.tabId2);
   const handleTabChange = (id) => {
     setActiveTab(id);
     const asideWorkspace = KTUtil.find(
@@ -95,17 +94,17 @@ export function Aside() {
                 <OverlayTrigger
                   placement="left"
                   overlay={
-                    <Tooltip id="latest-project">Latest Project</Tooltip>
+                    <Tooltip id="metronic-feature" style={{fontFamily:'Shabnam'}}>داشبورد</Tooltip>
                   }
                 >
                   <a
                     href="#"
                     className={`nav-link btn btn-icon btn-clean btn-lg ${activeTab ===
-                      tabs.tabId1 && "active"}`}
+                      tabs.tabId2 && "active"}`}
                     data-toggle="tab"
-                    data-target={`#${tabs.tabId1}`}
-                    role="tab"
-                    onClick={() => handleTabChange(tabs.tabId1)}
+                    data-target={`#${tabs.tabId2}`}
+                    role="tab2"
+                    onClick={() => handleTabChange(tabs.tabId2)}
                   >
                     <span className="svg-icon svg-icon-lg">
                       <SVG
@@ -131,8 +130,9 @@ export function Aside() {
               layoutProps.asideSelfMinimizeToggle && (
                 <>
                   <OverlayTrigger
+                    show={false}
                     placement="left"
-                    overlay={<Tooltip id="toggle-aside">Toggle Aside</Tooltip>}
+                    overlay={<Tooltip id="toggle-aside"> close </Tooltip>}
                   >
                     <span
                       className="aside-toggle btn btn-icon btn-primary btn-hover-primary shadow-sm"
@@ -146,8 +146,6 @@ export function Aside() {
             {/* end::Aside Toggle */}
 
           </div>
-          
-
           {/* end::Footer */}
         </div>
         {/* end::Primary */}
@@ -159,7 +157,7 @@ export function Aside() {
               {/* begin::Workspace */}
               <div className="aside-workspace scroll scroll-push my-2">
                 <div className="tab-content">
-                  <AsideSearch isActive={activeTab === tabs.tabId1} />
+                  
                   <AsideMenu isActive={activeTab === tabs.tabId2} />
                 </div>
               </div>

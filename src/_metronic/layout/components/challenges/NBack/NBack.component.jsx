@@ -9,11 +9,12 @@ const NBack = (props) => {
     let sum = 0;
     let cnt = 0;
     let arr = [1, 7, 7, 9, 8, 6, 3, 8, 3, 4, 6, 4, 1, 1, 9, 1, 9, 1, 1, 1, 5, 1, 9, 6, 5, 2, 5, 9, 1, 1, 1, 4, 6, 8, 6, 6, 8, 4, 5, 3, 5, 5, 5, 5, 2, 1, 8, 2, 8, 8, 8, 6, 3, 3, 4, 2, 1, 7, 7, 7, 7, 2, 8, 1, 8, 1, 7, 5, 6, 4, 8, 4, 8, 3, 5]
-    let interval, target, t, isi, numberOfStimuli, blockStartTimer, pressKey, answerTime, normalISI;
+    let interval, target, t, isi, numberOfStimuli, blockStartTimer, pressKey, answerTime, normalISI, counter;
     let scoreObj = {
+        name: "NBack",
         time: 3000,
-        isi : 1000,
-        n : 2,
+        isi: 1000,
+        n: 2,
         totalNumber: 0,
         allCorrects: 0,
         userCorrects: 0,
@@ -34,6 +35,7 @@ const NBack = (props) => {
             numberOfStimuli = arr.length;
         else
             numberOfStimuli = props.NBack_obj.NumberOfStimuli;
+
         window.addEventListener('keydown', eventHandler);
         return () => {
             window.removeEventListener('keydown', eventHandler)
@@ -43,10 +45,24 @@ const NBack = (props) => {
 
 
     const [number, setNumber] = useState(null);
-    const [showInfo, setShowInfo] = useState(0);
-    const [score, setScore] = useState({});
     const [feedBack, setFeedBack] = useState(null);
 
+
+    function triggerEvent(el, type, keyCode) {
+        if ('createEvent' in document) {
+                // modern browsers, IE9+
+                var e = document.createEvent('HTMLEvents');
+                e.keyCode = 32;
+                e.initEvent(type, false, true);
+                el.dispatchEvent(e);
+        } else {
+            // IE 8
+            var e = document.createEventObject();
+            e.keyCode = keyCode;
+            e.eventType = type;
+            el.fireEvent('on'+e.eventType, e);
+        }
+    }
 
     const eventHandler = (event) => {
         if (event.keyCode === 32 && !begin.current) {
@@ -58,7 +74,7 @@ const NBack = (props) => {
             if (event.keyCode === 32) {
                 pressKey = Date.now();
                 status.current = 0;
-                checkKey();
+                checkAnswer();
             }
     }
 
@@ -70,7 +86,7 @@ const NBack = (props) => {
             }
         }
         scoreObj.ommission = scoreObj.allCorrects;
-        setScore(scoreObj);
+        //setScore(scoreObj);
     }
 
     const start = () => {
@@ -93,7 +109,8 @@ const NBack = (props) => {
         if (cnt === numberOfStimuli) {
             clearInterval(interval);
             console.log("fin");
-            setShowInfo(1);
+            props.setScoreTable(scoreObj)
+            props.setScoreAvailable(true);
             return;
         }
         normalISI = setTimeout(() => {
@@ -102,8 +119,9 @@ const NBack = (props) => {
         }, t)
         cnt++;
     }
-    const checkKey = () => {
+    const checkAnswer = () => {
         let indexNum;
+        console.log(pressKey, cnt);
         if (pressKey && cnt > target) {
             answerTime = pressKey - blockStartTimer;
             indexNum = cnt - 1;
@@ -138,45 +156,48 @@ const NBack = (props) => {
                 }, isi)
             }
         }
-        setScore(scoreObj);
     }
 
     const averaging = () => {
         let avg = sum / response.length;
-        setScore(scoreObj);
         return avg;
     }
     if (!begin.current)
         return (
-            <div className="container">
-                <div className="start">
-                    <h1>
-                        را بزنید space برای شروع
+            <div className="start-game" dir="ltr">
+                <h1 className="start-text display-1">
+                    را بزنید space برای شروع
+                </h1>
+                <div className="d-flex mobile-space d-md-none justify-content-center mt-5">
+                    <button className="start-btn btn btn-info" onClick={()=>{triggerEvent(window , 'keydown' ,32)}}>
+                        Space
+                    </button>
+                </div>
+
+            </div>
+
+        )
+    return (
+        <div className="container">
+            <div className="row justify-content-center d-flex">
+                <h1 className="numbers">
+                    <strong>{number}</strong>
+                </h1>
+            </div>
+            {!props.NBack_obj.mode ?
+                <div className="row justify-content-center d-flex">
+                    <h1 className="feedback display-1">
+                        <strong>{feedBack}</strong>
                     </h1>
                 </div>
+                : null
+            }
+            <div className="d-flex mobile-sapce d-md-none justify-content-center">
+                <button className="start-btn btn btn-info" onClick={()=>{triggerEvent(window , 'keydown' , 32)}}>
+                    Space
+                </button>
             </div>
-        )
-    if (showInfo === 0)
-        return (
-            <div className="container mt-5">
-                <div className="row justify-content-center d-flex numbers">
-                    {number}
-                </div>
-                {!props.NBack_obj.mode ?
-                    <h1 className="row justify-content-center feedBacks">
-                        {feedBack}
-                    </h1>
-                    : null
-                }
-            </div>
-        )
-    if (showInfo === 1)
-        return (
-            <div className="container mt-5">
-                <div className="row justify-content-center">
-                    <Scores score={score} name={"NBack"} />
-                </div>
-            </div>
-        )
+        </div>
+    )
 }
 export default NBack;

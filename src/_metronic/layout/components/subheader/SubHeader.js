@@ -46,7 +46,6 @@ export function SubHeader() {
         ? aside.title
         : header.title
     );
-    console.log(breadcrumbs);
     // eslint-disable-next-line
   }, [location.pathname]);
 
@@ -75,13 +74,12 @@ export function SubHeader() {
           {/* end::Mobile Toggle */}
 
           {/* begin::Heading */}
-          <div className="d-flex align-items-baseline mr-5">
+          <div className="mr-5">
             {/* begin::Title */}
-            <h2 className="subheader-title text-dark font-weight-bold my-2 mr-3">
+            <h2 className="subheader-title text-dark font-weight-bold my-2 mr-3" style={{fontFamily:'Shabnam'}}>
               {subheader.title}
             </h2>
             {/* end::Title */}
-
             <BreadCrumbs items={subheader.breadcrumbs} />
           </div>
           {/* end::Heading */}

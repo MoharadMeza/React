@@ -20,7 +20,7 @@ export function AsideMenu({ isActive }) {
         <div
           id="kt_aside_menu"
           data-menu-vertical="1"
-          className={`aside-menu  min-h-lg-800px ${layoutProps.asideClassesFromConfig}`}
+          className={`aside-menu ${layoutProps.asideClassesFromConfig}`}
           {...layoutProps.asideMenuAttr}
         >
           <AsideMenuList layoutProps={layoutProps} />

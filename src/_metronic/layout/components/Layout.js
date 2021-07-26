@@ -18,6 +18,7 @@ import { StickyToolbar } from "./extras/StickyToolbar";
 import { AnimateLoading } from "../../_partials/controls";
 
 export function Layout({ children }) {
+  //console.log(children.props.startGame);
   const uiService = useHtmlClassService();
   // Layout settings (cssClasses/cssAttributes)
   const layoutProps = useMemo(() => {
@@ -29,7 +30,7 @@ export function Layout({ children }) {
       contentExtended: objectPath.get(uiService.config, "content.extended"),
     };
   }, [uiService]);
-  return layoutProps.selfLayout !== "blank" ? (
+  return layoutProps.selfLayout !== "blank" && !children.props.startGame ? (
     <>
       {/*begin::Main*/}
       <HeaderMobile />
@@ -37,7 +38,7 @@ export function Layout({ children }) {
       <div className="d-flex flex-column flex-root">
         {/*begin::Page*/}
         <div className="d-flex flex-row flex-column-fluid page">
-          <Aside />
+          <Aside /> 
 
           {/*begin::Wrapper*/}
           <div
@@ -56,19 +57,18 @@ export function Layout({ children }) {
               {layoutProps.contentExtended && <>{children}</>}
 
               {!layoutProps.contentExtended && (
-                <div className="d-flex flex-column-fluid">
+                <div className="d-flex flex-column-fluid align-content-center">
                   {/*begin::Container*/}
+                  {/* {layoutProps.contentContainerClasses} */}
                   <div className={layoutProps.contentContainerClasses}>
                     {children}
                   </div>
                   {/*end::Container*/}
                 </div>
               )}
-
               {/*end::Entry*/}
             </div>
             {/*end::Content*/}
-            <Footer />
           </div>
           {/*end::Wrapper*/}
         </div>
@@ -80,12 +80,11 @@ export function Layout({ children }) {
       <ScrollTop />
       <QuickSearch />
       <QuickActions />
-      <StickyToolbar />
       {/*end::Main*/}
       <LayoutInit />
     </>
   ) : (
     // BLANK LAYOUT
-    <div className="d-flex flex-column flex-root">{children}</div>
+    <div className="d-flex flex-column flex-root justify-content-center align-items-center">{children}</div>
   );
 }

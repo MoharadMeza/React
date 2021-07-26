@@ -9,14 +9,15 @@ export function BreadCrumbs({ items }) {
 
   return (
     <ul className="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold my-2 p-0">
-      <Link className="breadcrumb-item" to="/dashboard">
-        Dashboard
+      <Link className="breadcrumb-item" style={{fontFamily:'Shabnam'}} to="/dashboard">
+        داشبورد
       </Link>
       {items.map((item, index) => (
         <li className="breadcrumb-item" key={index}>
           <Link
             className="text-muted "
             to={{ pathname: item.pathname }}
+            style={{fontFamily:'Shabnam'}}
           >
             {item.title}
           </Link>

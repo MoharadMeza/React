@@ -11,6 +11,7 @@ export class HtmlClassService {
    * Build html element classes from layout config
    * @param layoutConfig
    */
+
   setConfig(layoutConfig) {
     this.config = this.preInit(layoutConfig);
 
